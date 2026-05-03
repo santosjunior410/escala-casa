@@ -60,7 +60,6 @@ img {
     border-radius: 10px;
 }
 
-/* OBS */
 .obs-title {
     margin: 10px;
     font-weight: bold;
@@ -105,9 +104,9 @@ let dados = {};
 let obs = [];
 let datas = [];
 
-/* datas */
+/* 📅 DATA FIXA CORRIGIDA */
 function gerarDatas() {
-    let base = new Date();
+    let base = new Date(2026, 3, 25); // ✔ 25/04/2026 correto
     datas = [];
 
     for (let i = 0; i < nomes.length * 3; i++) {
