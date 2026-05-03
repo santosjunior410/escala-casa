@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limpeza do Residencial</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f2f2f2;
+    margin: 0;
+}
+
+.header {
+    background: #1b5e20;
+    color: white;
+    padding: 16px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.card, .obs-box {
+    background: white;
+    margin: 10px;
+    padding: 12px;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.nome { font-weight: bold; }
+.data { font-size: 13px; color: #555; }
+
+.pendente { color: red; font-weight: bold; }
+.feito { color: green; font-weight: bold; }
+
+button {
+    width: 100%;
+    padding: 9px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.confirmar {
+    background: #ff7043;
+    color: white;
+}
+
+.confirmado {
+    background: #2e7d32 !important;
+    color: white;
+}
+
+img {
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 10px;
+}
+
+/* OBS */
+.obs-title {
+    margin: 10px;
+    font-weight: bold;
+    color: #1b5e20;
+}
+
+select, textarea {
+    width: 95%;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🧹 Limpeza do Residencial</div>
+
+<div id="escala"></div>
+
+<div class="obs-title">📝 Observação</div>
+
+<select id="nomeObs">
+    <option value="">Quem está falando?</option>
+</select>
+
+<textarea id="textoObs" placeholder="Escreva uma observação..."></textarea>
+
+<button onclick="addObs()" style="background:#1976D2;color:white;margin:10px;width:95%;">
+    Enviar observação
+</button>
+
+<div id="listaObs"></div>
+
+<script>
+
+const nomes = ["Mara","Tayná","Elias","Clóvis","Abimael","Lucas"];
+
+let dados = {};
+let obs = [];
+let datas = [];
+
+/* datas */
+function gerarDatas() {
+    let base = new Date();
+    datas = [];
+
+    for (let i = 0; i < nomes.length * 3; i++) {
+        let d = new Date(base);
+        d.setDate(base.getDate() + (i * 15));
+        datas.push(d.toLocaleDateString("pt-BR"));
+    }
+}
+
+/* init */
+function init() {
+    gerarDatas();
+
+    nomes.forEach((n, i) => {
+        dados[n] = {
+            status: "pendente",
+            data: datas[i],
+            foto: ""
+        };
+    });
+
+    render();
+}
+
+/* confirmar com foto */
+function confirmar(nome) {
+    let input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = e => {
+        let file = e.target.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function(event) {
+            dados[nome].foto = event.target.result;
+            dados[nome].status = "feito";
+            render();
+        };
+
+        if (file) reader.readAsDataURL(file);
+    };
+
+    input.click();
+}
+
+/* ESCALA */
+function render() {
+    let div = document.getElementById("escala");
+    div.innerHTML = "";
+
+    nomes.forEach(nome => {
+        let item = dados[nome];
+
+        div.innerHTML += `
+        <div class="card">
+            <div class="nome">${nome}</div>
+            <div class="data">Data: ${item.data}</div>
+
+            <div class="${item.status}">
+                ${item.status === "feito" ? "Concluído" : "Pendente"}
+            </div>
+
+            <button onclick="confirmar('${nome}')"
+                ${item.status === "feito" ? "disabled" : ""}
+                class="confirmar ${item.status === "feito" ? "confirmado" : ""}">
+                ${item.status === "feito" ? "Feito ✔" : "Confirmar + Foto"}
+            </button>
+
+            ${item.foto ? `<img src="${item.foto}">` : ""}
+        </div>
+        `;
+    });
+
+    checkReset();
+}
+
+/* reset automático */
+function checkReset() {
+    let ok = nomes.every(n => dados[n].status === "feito");
+
+    if (ok) {
+        setTimeout(() => {
+            init();
+        }, 1000);
+    }
+}
+
+/* OBS */
+function addObs() {
+    let nome = document.getElementById("nomeObs").value;
+    let texto = document.getElementById("textoObs").value;
+
+    if (!nome || !texto.trim()) return;
+
+    obs.push({ nome, texto });
+
+    document.getElementById("textoObs").value = "";
+
+    renderObs();
+}
+
+function renderObs() {
+    let div = document.getElementById("listaObs");
+    div.innerHTML = "";
+
+    let select = document.getElementById("nomeObs");
+    select.innerHTML = `<option value="">Quem está falando?</option>`;
+
+    nomes.forEach(n => {
+        select.innerHTML += `<option value="${n}">${n}</option>`;
+    });
+
+    obs.forEach(o => {
+        div.innerHTML += `
+        <div class="obs-box">
+            <b>${o.nome}:</b> ${o.texto}
+        </div>
+        `;
+    });
+}
+
+init();
+
+</script>
+
+</body>
+</html>
